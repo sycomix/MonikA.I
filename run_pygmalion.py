@@ -39,11 +39,7 @@ def inference_fn(model,tokenizer,history: str, user_input: str,
     #remove last line and keep the last line before
     last_line = model_output.splitlines()[-1]
     list_lines = model_output.splitlines()
-    if last_line.startswith("You:"):
-        bot_message = list_lines[-2]
-    else:
-        bot_message = last_line
-
+    bot_message = list_lines[-2] if last_line.startswith("You:") else last_line
     #remove the char name at the beginning of the line
     bot_message = bot_message.replace(f"{char_name}: ","")
 

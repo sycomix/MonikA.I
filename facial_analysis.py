@@ -141,7 +141,7 @@ class FacialImageProcessing:
             i = I[-1]
             pick[counter] = i
             counter += 1
-            idx = I[0:-1]
+            idx = I[:-1]
             xx1 = np.maximum(x1[i], x1[idx])
             yy1 = np.maximum(y1[i], y1[idx])
             xx2 = np.minimum(x2[i], x2[idx])
@@ -154,7 +154,7 @@ class FacialImageProcessing:
             else:
                 o = inter / (area[i] + area[idx] - inter)
             I = I[np.where(o<=threshold)]
-        pick = pick[0:counter]
+        pick = pick[:counter]
         return pick
 
     # function [dy edy dx edx y ey x ex tmpw tmph] = pad(total_boxes,w,h)

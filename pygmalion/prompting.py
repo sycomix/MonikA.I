@@ -51,5 +51,4 @@ def build_prompt_for(
 
     # Done!
     logger.debug("Constructed prompt is: `%s`", prompt_turns)
-    prompt_str = "\n".join(prompt_turns)
-    return prompt_str
+    return "\n".join(prompt_turns)

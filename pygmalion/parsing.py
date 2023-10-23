@@ -21,10 +21,9 @@ def parse_messages_from_str(string: str, names: t.List[str]) -> t.List[str]:
     speaker_regex = re.compile(rf"^({'|'.join(sanitized_names)}): ?",
                                re.MULTILINE)
 
-    message_start_indexes = []
-    for match in speaker_regex.finditer(string):
-        message_start_indexes.append(match.start())
-
+    message_start_indexes = [
+        match.start() for match in speaker_regex.finditer(string)
+    ]
     prev_start_idx = message_start_indexes[0]
     messages = []
 

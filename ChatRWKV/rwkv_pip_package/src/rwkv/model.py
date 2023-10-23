@@ -115,10 +115,9 @@ class RWKV(MyModule):
                             free_slots -= 1
                 if to_allocate > allocated:
                     plan[len(s)-1] += to_allocate - allocated
-            else:
-                if to_allocate > allocated:
-                    stream_count = to_allocate - allocated
-                    plan[stream_i] += stream_count
+            elif to_allocate > allocated:
+                stream_count = to_allocate - allocated
+                plan[stream_i] += stream_count
             print(f'Strategy: (total {args.n_layer}+1={args.n_layer+1} layers)')
             for i in range(len(s)):
                 ss = s[i]
@@ -152,12 +151,12 @@ class RWKV(MyModule):
                 dd = strategy[layer_id]
                 DEVICE = dd.device
                 DTYPE = dd.dtype
-                
+
                 if '.time_' in x:
                     w[x] = w[x].squeeze()
                 if 'key.weight' in x or 'value.weight' in x or 'receptance.weight' in x or 'output.weight' in x or 'head.weight' in x:
                     w[x] = w[x].t()
-                
+
                 if '.time_decay' in x: # need fp32 for this
                     w[x] = -torch.exp(w[x].float())
                 elif '.time_first' in x: # need fp32 for this
@@ -170,7 +169,7 @@ class RWKV(MyModule):
                         w[x] = w[x] / (2 ** int(layer_id // self.RESCALE_LAYER))
                     if 'ffn.value.weight' in x:
                         w[x] = w[x] / (2 ** int(layer_id // self.RESCALE_LAYER))
-                
+
                 if 'emb.' in x:
                     pass
                 elif (dd.stream) and (('key.weight' in x) or ('value.weight' in x) or ('receptance.weight' in x) or ('output.weight' in x)):

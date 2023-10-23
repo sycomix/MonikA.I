@@ -39,18 +39,18 @@ def get_best_ckpt_from_last_run(
         model_name="FastPitch"
     ):    
     mixing = "no_mixing" if not mixing_enabled else "mixing"
-    
-    d = f"{original_speaker_id}_to_{new_speaker_id}_{mixing}_{duration_mins}_mins"
-    
-    exp_dirs = list([i for i in (Path(base_dir) / d / model_name).iterdir() if i.is_dir()])
-    last_exp_dir = sorted(exp_dirs)[-1]
-    
-    last_checkpoint_dir = last_exp_dir / "checkpoints"
-    
-    last_ckpt = list(last_checkpoint_dir.glob('*-last.ckpt'))
 
-    if len(last_ckpt) == 0:
+    d = f"{original_speaker_id}_to_{new_speaker_id}_{mixing}_{duration_mins}_mins"
+
+    exp_dirs = [
+        i for i in (Path(base_dir) / d / model_name).iterdir() if i.is_dir()
+    ]
+    last_exp_dir = sorted(exp_dirs)[-1]
+
+    last_checkpoint_dir = last_exp_dir / "checkpoints"
+
+    if last_ckpt := list(last_checkpoint_dir.glob('*-last.ckpt')):
+        return str(last_ckpt[0])
+    else:
         raise ValueError(f"There is no last checkpoint in {last_checkpoint_dir}.")
-    
-    return str(last_ckpt[0])
 

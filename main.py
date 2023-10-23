@@ -138,10 +138,7 @@ with HiddenPrints():
         from tortoise.api import TextToSpeech,MODELS_DIR
         from tortoise.utils.audio import load_voices
         from voicefixer import VoiceFixer
-        if TTS_MODEL == "Your TTS":
-            tts_model = my_TTS(model_name="tts_models/multilingual/multi-dataset/your_tts")
-            sampling_rate = 16000
-        elif TTS_MODEL == "Tortoise TTS":
+        if TTS_MODEL == "Tortoise TTS":
             tts_model = TextToSpeech(
                     models_dir=MODELS_DIR,
                     high_vram=False,
@@ -150,6 +147,9 @@ with HiddenPrints():
             voice_samples, conditioning_latents = load_voices([VOICE_SAMPLE_TORTOISE], ["tortoise_audios"])
             vfixer = VoiceFixer()
             sampling_rate = 24000
+        elif TTS_MODEL == "Your TTS":
+            tts_model = my_TTS(model_name="tts_models/multilingual/multi-dataset/your_tts")
+            sampling_rate = 16000
         else:
             print("No TTS model selected")
 
@@ -199,8 +199,8 @@ if USE_SPEECH_RECOGNITION:
     english = True
     def init_stt(model="base", english=True,energy=300, pause=0.8, dynamic_energy=False):
         if model != "large" and english:
-            model = model + ".en"
-        audio_model = whisper.load_model(model)    
+            model = f"{model}.en"
+        audio_model = whisper.load_model(model)
         r = sr.Recognizer()
         r.energy_threshold = energy
         r.pause_threshold = pause
@@ -322,7 +322,7 @@ uni_chr_re = re.compile(r'\\u[0-9a-fA-F]{4}')
 
 #Launch the game
 if not LAUNCH_YOURSELF:
-    subprocess.Popen(GAME_PATH+'/DDLC.exe')
+    subprocess.Popen(f'{GAME_PATH}/DDLC.exe')
 
 def listen():
 	""" Wait for incoming connections """
@@ -347,15 +347,15 @@ def sendMessage(msg, name=""):
 def send_answer(received_msg,msg):
     if received_msg != "" and USE_ACTIONS:
         sequence_to_classify = f"The player is speaking with Monika, his virtual girlfriend. Now he says: {received_msg}. What is the label of this sentence?"
-        action_to_take = action_classifier(sequence_to_classify,ALL_ACTIONS)   
-        action_to_take = action_to_take["labels"][0]   
-        print("Action: "+action_to_take)
+        action_to_take = action_classifier(sequence_to_classify,ALL_ACTIONS)
+        action_to_take = action_to_take["labels"][0]
+        print(f"Action: {action_to_take}")
         action_to_take = REVERT_ACTION_DICT[action_to_take]
     else:
         action_to_take = "none"
-    action_to_take = action_to_take.encode("utf-8")           
+    action_to_take = action_to_take.encode("utf-8")
     emotion = "".encode("utf-8")
-    msg = msg.encode("utf-8")   
+    msg = msg.encode("utf-8")
     msg_to_send = msg + b"/g" + emotion + b"/g" + action_to_take
     sendMessage(msg_to_send)
 

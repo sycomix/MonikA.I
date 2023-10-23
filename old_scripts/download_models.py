@@ -13,9 +13,9 @@ emotion_model = torch.load('models/enet_b2_7.pt').to(device)
 english = True
 def init_stt(model="base", english=True,energy=300, pause=0.8, dynamic_energy=False):
     if model != "large" and english:
-        model = model + ".en"
+        model = f"{model}.en"
     audio_model = whisper.load_model(model)    
-    
+
     #load the speech recognizer and set the initial energy threshold and pause threshold
     r = sr.Recognizer()
     r.energy_threshold = energy

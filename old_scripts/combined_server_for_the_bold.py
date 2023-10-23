@@ -113,9 +113,9 @@ emotion_model = torch.load('models/enet_b2_7.pt').to(device)
 english = True
 def init_stt(model="base", english=True,energy=300, pause=0.8, dynamic_energy=False):
     if model != "large" and english:
-        model = model + ".en"
+        model = f"{model}.en"
     audio_model = whisper.load_model(model)    
-    
+
     #load the speech recognizer and set the initial energy threshold and pause threshold
     r = sr.Recognizer()
     r.energy_threshold = energy
@@ -175,13 +175,11 @@ async def launch():
             await asyncio.sleep(1)
         await page.click('[href="/chats"]')
     char_page = characters_pages[CHOOSE_CHARACTER]
-    if await page.is_visible(char_page):
-        await page.click(char_page)
-    else:
+    if not await page.is_visible(char_page):
         await page.click('[href="/search?"]')
         await page.fill("input#search-input","monika")
         await page.click('[class="btn btn-primary"]')
-        await page.click(char_page)
+    await page.click(char_page)
     await page.click('[class="col-auto px-2 dropdown"]')
     await page.click('text=Save and Start New Chat')
     return page
@@ -200,7 +198,7 @@ async def listenToClient(client):
     """ Get client username """
     name = "User"
     clients[client] = name
-    
+
     while True:
         received_msg = client.recv(BUFSIZE).decode("utf-8") #Message indicating the mode used (chatbot,camera_int or camera)
         #print("Received: "+ received_msg)
@@ -230,7 +228,7 @@ async def listenToClient(client):
                         result = audio_model.transcribe(audio_data)
                     received_msg = result['text']
 
-            print("User: "+received_msg)
+            print(f"User: {received_msg}")
 
             if USE_CHATBOT:
                 new_user_input_ids = tokenizer.encode(received_msg + tokenizer.eos_token, return_tensors='pt')
@@ -257,8 +255,10 @@ async def listenToClient(client):
                     except:
                         sendMessage("server_error".encode("utf-8"))
                         continue
-                if os.path.exists(GAME_PATH+'/game/Submods/AI_submod/audio/out.ogg'):
-                    os.remove(GAME_PATH+'/game/Submods/AI_submod/audio/out.ogg')
+                if os.path.exists(
+                    f'{GAME_PATH}/game/Submods/AI_submod/audio/out.ogg'
+                ):
+                    os.remove(f'{GAME_PATH}/game/Submods/AI_submod/audio/out.ogg')
                 if received_msg == "QUIT":
                     await page.fill("textarea","I'll be right back")
                 else:
@@ -273,7 +273,7 @@ async def listenToClient(client):
                     if not await page.is_disabled('[class="btn py-0"]'):
                         query = await page.query_selector_all(('[class="markdown-wrapper markdown-wrapper-last-msg swiper-no-swiping"]'))
                         msg = await query[0].inner_html()
-                        
+
                         msg = msg.replace("<em>","{i}")
                         msg = msg.replace("</em>","{/i}")
                         msg = msg.replace("<div>","")
@@ -295,24 +295,24 @@ async def listenToClient(client):
                                 msg_audio = msg_audio.replace("{i}","")
                                 msg_audio = msg_audio.replace("{/i}",".")
                                 msg_audio = msg_audio.replace("~","!")
-                              
+
                                 spec, audio = infer(spec_model, vocoder,msg_audio)
                                 audio = ipd.Audio(audio, rate=22050)
                                 audio = AudioSegment(audio.data, frame_rate=22050, sample_width=2, channels=1)
-                                audio.export(GAME_PATH+'/game/Submods/AI_submod/audio/out.ogg', format='ogg')           
-                                
+                                audio.export(f'{GAME_PATH}/game/Submods/AI_submod/audio/out.ogg', format='ogg')           
+
                             #Emotion detection
                             if MONIKA_FEELING: 
                                 emotion = get_emotion(msg)
                                 emotion = emotion.encode("utf-8")
                             else:
                                 emotion = "".encode("utf-8")
-                            msg = msg.encode("utf-8")   
+                            msg = msg.encode("utf-8")
                             msg_to_send = msg + b"/g" + emotion
                             print("Sent: "+ msg_to_send.decode("utf-8"))
                             sendMessage(msg_to_send)
                         break
-                    
+
         elif received_msg == "camera_int":
             # start the webcam feed
             cap = cv2.VideoCapture(0)
@@ -324,7 +324,7 @@ async def listenToClient(client):
             emotion = None
             for bbox,p in zip(bounding_boxes, points):
                 box = bbox.astype(np.int32)
-                x1,y1,x2,y2=box[0:4]    
+                x1,y1,x2,y2 = box[:4]
                 face_img=frame[y1:y2,x1:x2,:]
 
                 img_tensor = test_transforms(Image.fromarray(face_img))
@@ -333,11 +333,11 @@ async def listenToClient(client):
                 scores=scores[0].data.cpu().numpy()
                 emotion = emotion_dict[np.argmax(scores)]
 
-            if emotion == None:
+            if emotion is None:
                 emotion = "No"
 
             msg = emotion.lower()
-            
+
             cap.release()
             cv2.destroyAllWindows()
 
@@ -358,7 +358,7 @@ async def listenToClient(client):
                 emotion = None
                 for bbox,p in zip(bounding_boxes, points):
                     box = bbox.astype(np.int32)
-                    x1,y1,x2,y2=box[0:4]    
+                    x1,y1,x2,y2 = box[:4]
                     face_img=frame[y1:y2,x1:x2,:]
 
                     img_tensor = test_transforms(Image.fromarray(face_img))
@@ -367,20 +367,19 @@ async def listenToClient(client):
                     scores=scores[0].data.cpu().numpy()
                     emotion = emotion_dict[np.argmax(scores)]
 
-                if emotion == None:
+                if emotion is None:
                     emotion = "No"
 
                 msg = emotion.lower()
-                
+
                 cap.release()
                 cv2.destroyAllWindows()
 
-                msg = msg.encode()
-                sendMessage(msg)
             else:
                 msg = "no_data"
-                msg = msg.encode()
-                sendMessage(msg)
+
+            msg = msg.encode()
+            sendMessage(msg)
 
 
 def sendMessage(msg, name=""):

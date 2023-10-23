@@ -88,7 +88,7 @@ def combine_filtered(path, dest_path):
     files = [file for file in files if file.endswith("_filtered.txt")]
     with open(dest_path, "w",encoding="utf-8") as f:
         for file in files:
-            with open(path + "/" + file, "r") as f2:
+            with open(f"{path}/{file}", "r") as f2:
                 lines = f2.readlines()
             for line in lines:
                 f.write(line)
@@ -123,6 +123,8 @@ if __name__ == "__main__":
         else:
             word_count[word] = 1
     #sort words by count
-    word_count = {k: v for k, v in sorted(word_count.items(), key=lambda item: item[1], reverse=True)}
+    word_count = dict(
+        sorted(word_count.items(), key=lambda item: item[1], reverse=True)
+    )
     #print first 100 words
     print(list(word_count.items())[:1000])

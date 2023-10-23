@@ -80,10 +80,9 @@ def parse_messages_from_str(string: str, names: t.List[str]) -> t.List[str]:
 
     speaker_regex = re.compile(rf"^({'|'.join(sanitized_names)}): ?",
                                re.MULTILINE)
-    message_start_indexes = []
-    for match in speaker_regex.finditer(string):
-        message_start_indexes.append(match.start())
-
+    message_start_indexes = [
+        match.start() for match in speaker_regex.finditer(string)
+    ]
     prev_start_idx = message_start_indexes[0]
     messages = []
 
@@ -125,8 +124,7 @@ def build_prompt_for(
 
     context_to_bot = f"Based on all of the above, you have to play the role of {char_name} and talk to the user. You have to be completely in character and respond to the user as {char_name} would."
     prompt_turns.append(context_to_bot)
-    prompt_str = "\n\n".join(prompt_turns)
-    return prompt_str
+    return "\n\n".join(prompt_turns)
 
 with open(f"char_json/{CHAR_JSON}","r") as f:
     char_settings = json.load(f)
@@ -190,9 +188,7 @@ def run_rnn(tokens, newline_adj = 0):
 all_state = {}
 def save_all_stat(srv, name, last_out):
     n = f'{name}_{srv}'
-    all_state[n] = {}
-    all_state[n]['out'] = last_out
-    all_state[n]['rnn'] = copy.deepcopy(model_state)
+    all_state[n] = {'out': last_out, 'rnn': copy.deepcopy(model_state)}
     all_state[n]['token'] = copy.deepcopy(model_tokens)
 
 def load_all_stat(srv, name):
@@ -230,22 +226,18 @@ def on_message(message):
     x_top_p = GEN_TOP_P
     if ("-temp=" in msg):
         x_temp = float(msg.split("-temp=")[1].split(" ")[0])
-        msg = msg.replace("-temp="+f'{x_temp:g}', "")
+        msg = msg.replace(f'-temp={x_temp:g}', "")
     if ("-top_p=" in msg):
         x_top_p = float(msg.split("-top_p=")[1].split(" ")[0])
-        msg = msg.replace("-top_p="+f'{x_top_p:g}', "")
-    if x_temp <= 0.2:
-        x_temp = 0.2
-    if x_temp >= 5:
-        x_temp = 5
-    if x_top_p <= 0:
-        x_top_p = 0
-    
+        msg = msg.replace(f'-top_p={x_top_p:g}', "")
+    x_temp = max(x_temp, 0.2)
+    x_temp = min(x_temp, 5)
+    x_top_p = max(x_top_p, 0)
     out = load_all_stat(srv, 'chat')
     new = f"{user}{interface} {msg}\n\n{bot}{interface}"
     out = run_rnn(pipeline.encode(new), newline_adj=-999999999)
     save_all_stat(srv, 'chat_pre', out)
-    
+
     begin = len(model_tokens)
     occurrence = {}
     for i in range(999):
@@ -270,7 +262,7 @@ def on_message(message):
         else:
             occurrence[token] += 1
         occurrence[187] = 0
-        
+
         out = run_rnn([token], newline_adj=newline_adj)
         send_msg = pipeline.decode(model_tokens[begin:])
 

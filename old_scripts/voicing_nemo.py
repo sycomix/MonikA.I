@@ -92,7 +92,7 @@ async def listenToClient(client):
                 msg_audio = msg_audio.replace(last_sentence,"\g")
                 msg_audio = msg_audio.split("\g")[0]
             msg_audio_play = msg_audio
-            print(msg_audio + "|" + last_sentence + "|" + msg_audio_play)
+            print(f"{msg_audio}|{last_sentence}|{msg_audio_play}")
             print('\n')
             spec, audio = infer(spec_model, vocoder,msg_audio_play)
             audio = ipd.Audio(audio, rate=22050)

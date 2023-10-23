@@ -14,9 +14,9 @@ def stt(model="base", english=True, verbose=False, energy=300, pause=1, dynamic_
         save_path = os.path.join(temp_dir, "temp.wav")
     #there are no english models for large
     if model != "large" and english:
-        model = model + ".en"
+        model = f"{model}.en"
     audio_model = whisper.load_model(model)    
-    
+
     #load the speech recognizer and set the initial energy threshold and pause threshold
     r = sr.Recognizer()
     r.energy_threshold = energy
